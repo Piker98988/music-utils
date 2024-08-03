@@ -13,6 +13,7 @@ readarray -t file_array <<< $files_string
 
 # Print the array to verify
 echo "Files to bulk rename:"
+# shellcheck disable=SC2068
 for file in ${file_array[@]}
 do
     echo $file
@@ -28,6 +29,7 @@ while true; do
 done
 
 # start the renaming proccess
+# shellcheck disable=SC2068
 for file in ${file_array[@]}
 do
     echo;

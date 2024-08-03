@@ -55,7 +55,7 @@ do
 #    echo $file"  ---->  "$new_filename
 #    mv "$file" "$new_filename"
 #    echo $file" renamed"
-    cp $file $SONGS_DIR
+    cp "$file" "$SONGS_DIR"
     echo "file "$file" has been succesfully moved to the default music directory."
 done
 
@@ -71,7 +71,7 @@ while true; do
             for file in ${file_array[@]}
             do
                 echo $file
-                rm $file
+                rm "$file"
             done
             exit;;
             *) echo "(y/n)";;
@@ -79,7 +79,7 @@ while true; do
 done
 
 # list available playlists from $PLAYLISTS_DIR and ask for a playlist to move to
-ls -l $PLAYLISTS_DIR
+ls -l "$PLAYLISTS_DIR"
 read -ep "select a playlist from the default playlist directory: " playlist
 
 # shellcheck disable=SC2068
@@ -90,7 +90,7 @@ do
 #    echo $file"  ---->  "$new_filename
 #    mv "$file" "$new_filename"
 #    echo $file" renamed"
-    mv $file "$PLAYLISTS_DIR/$playlist"
+    mv "$file" "$PLAYLISTS_DIR/$playlist"
     echo "file "$file" has been succesfully moved to the selected playlist $playlist inside the default playlist directory $PLAYLISTS_DIR."
 done
 
