@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# old comments. the direction of the script was to rename whatever to whatever but the direction has changed. only to rename music.
+# old comments. the direction of the script was to rename whatever to whatever but now only to rename music. this is music-utils
 echo "bulk rename songs to remove the 'spotifydown.com - ' part"
 
 # read the files to rename
@@ -11,11 +11,12 @@ readarray -t file_array <<< $files_string
 
 # Print the array to verify
 echo "Files to bulk rename:"
-# shellcheck disable=SC2068
+
 for file in ${file_array[@]}
 do
-    new_filename="${file//"spotifydown.com - "/""/}"
-    echo $file"  ---->  "$new_filename
+    new_filename="${file//"spotifydown.com - "/""}"
+    new_filename="${new_filename//" "/"_"}"
+    echo "$file  ---->  $new_filename"
 done
 
 # double check confirmation
@@ -32,8 +33,8 @@ done
 for file in ${file_array[@]}
 do
     echo;
-    new_filename="${file//"spotifydown.com - "/""/}"
-    echo $file"  ---->  "$new_filename
+    new_filename="${file//"spotifydown.com - "/""}"
+    new_filename="${new_filename//" "/"_"}"
     mv "$file" "$new_filename"
     echo $file" renamed"
 done

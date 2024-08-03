@@ -1,4 +1,27 @@
 #! /bin/bash
+# TODO: make reading the file_array var and printing it to stdout a function
+
+
+# ran into problems while testing because this variables were not set. double check at the start from now on
+if [ -z "$SONGS_DIR" ]; then
+    echo "The environment variable SONGS_DIR is not set."
+    read -rep "Specify a default ABSOLUTE path for songs: " -i "$HOME/music/songs" songs_path
+    echo "export SONGS_DIR=$songs_path" >> "$HOME/.bashrc"
+    echo "SONGS_DIR set to "$SONGS_DIR
+else
+    echo "Environment variable SONGS_DIR found: $SONGS_DIR"
+fi
+
+if [ -z "$PLAYLISTS_DIR" ]; then
+    echo "The environment variable PLAYLISTS_DIR is not set."
+    read -rep "Specify a default ABSOLUTE path for playlists: " -i "$HOME/music/playlists" playlists_path
+    echo "export PLAYLISTS_DIR=$playlists_path" >> "$HOME/.bashrc"
+    echo "PLAYLISTS_DIR set to "$PLAYLISTS_DIR
+else
+    echo "Environment variable PLAYLISTS_DIR found: $PLAYLISTS_DIR"
+fi
+
+
 
 # ask for files to be moved
 read -rep "Files to move: " -i '*' files_string

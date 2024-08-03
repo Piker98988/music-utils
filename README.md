@@ -1,2 +1,2 @@
 # music-utils
-have big expectations for this project. going to expand it soon.
+set of scripts that help one make their music collection local
