@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# old comments. the direction of the script was to rename whatever to whatever but now only to rename music. this is music-utils
-echo "bulk rename songs to remove the 'spotifydown.com - ' part"
-
 # read the files to rename
 read -rep "Song files to rename: " -i '*' files_string
 
