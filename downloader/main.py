@@ -56,6 +56,18 @@ def _handle_playlist_download(page, zip_number):
         logger.debug(f"Downloading zip {iterations}")
         # TODO
         iterations += 1
+
+        download_button = page.get_by_role("button", name="Download")
+        with page.expect_download() as download_info:
+            download_button.click()
+            logger.debug("Download playlist button clicked")
+
+        song = download_info.value
+        logger.debug("Waiting for the song to be downloaded...")
+        logger.debug("Checking if download has been complete...")
+        song.save_as("./.cache/" + f"{iterations}" + song.suggested_filename)
+        logger.info("Download complete")
+
     raise NotImplementedError
 
 
@@ -96,7 +108,7 @@ def _handle_song_download(page):
     logger.info("Download complete")
 
 
-def main():
+def download():
     """
     Main function that handles the browser instances and process the url given by the user
     """
@@ -147,15 +159,10 @@ def main():
         logger.debug(f"is_playlist: {is_playlist(user_url)}")
         logger.debug("Searching for first download button (process url button)")
 
-        # search for download button and click it
-        # not anymore...
-#        submit_button_1 = page.get_by_role("button", name="Download")
-#        logger.info("Process url button found")
-#        submit_button_1.click()
-#        logger.debug("Process url button clicked")
+        # press enter to input url
         page.keyboard.press("Enter")
 
-
+        # accept cookies
         logger.debug(f"Calling accept cookie popup")
         _accept_cookie_popup(page)
 
@@ -201,4 +208,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    download()
