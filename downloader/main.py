@@ -12,13 +12,12 @@ from playwright.sync_api import sync_playwright
 
 def startLogger():
     # set the logging file and test
-    logger.add("./.logs/downloader_{time}.log")
-    logger.level("debug")
+    logger.add("./.cache/logs/downloader_{time}.log")
     logger.info("Loguru initiated: info")
     logger.debug("Loguru initiated: debug")
     logger.warning("Loguru initiated: warn")
-    logger.critical("Loguru initiated: critical")
     logger.error("Loguru initiated: error")
+    logger.critical("Loguru initiated: critical")
 
 
 def is_playlist(url: str):
@@ -52,11 +51,11 @@ def _handle_playlist_download(page, zip_number):
     """
 
     logger.debug("Playlist download handler called")
-    iterations = zip_number
-    while iterations > 0:
-        iterations -= 1
-        logger.debug(f"Downloading zip number {iterations}")
+    iterations = 1
+    while iterations <= zip_number + 1:
+        logger.debug(f"Downloading zip {iterations}")
         # TODO
+        iterations += 1
     raise NotImplementedError
 
 
@@ -93,9 +92,8 @@ def _handle_song_download(page):
     song = download_info.value
     logger.debug("Waiting for the song to be downloaded...")
     logger.debug("Checking if download has been complete...")
-    song.save_as("./downloaded/" + song.suggested_filename)
+    song.save_as("./.cache/" + song.suggested_filename)
     logger.info("Download complete")
-    raise NotImplementedError
 
 
 def main():
@@ -122,7 +120,7 @@ def main():
         logger.info("Starting connection...")
 
         # open chromium
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         logger.debug("Browser opened")
 
         # new page in spotifydown.com
@@ -135,17 +133,28 @@ def main():
         input_textbox = page.get_by_placeholder("https://open.spotify.com/..../....")
         logger.debug("Input textbox found")
 
-        # input the url
-        input_textbox.type(user_url)
+        """
+        To understand the following code you need to know that spotifydown.com has an anti-bot that records your
+        tpm and based on it lets you dowload or not. The workaround is basically selecting the textbox and instead
+        of using type() method, which does it letter by letter, use the insert_text() one which pastes it in an instant
+        """
+
+        # select textbox
+        input_textbox.type("")
+        # paste the url
+        page.keyboard.insert_text(user_url)
         logger.debug("The user_url has been input into the input_textbox")
         logger.debug(f"is_playlist: {is_playlist(user_url)}")
         logger.debug("Searching for first download button (process url button)")
 
         # search for download button and click it
-        submit_button_1 = page.get_by_role("button", name="Download")
-        logger.info("Process url button found")
-        submit_button_1.click()
-        logger.debug("Process url button clicked")
+        # not anymore...
+#        submit_button_1 = page.get_by_role("button", name="Download")
+#        logger.info("Process url button found")
+#        submit_button_1.click()
+#        logger.debug("Process url button clicked")
+        page.keyboard.press("Enter")
+
 
         logger.debug(f"Calling accept cookie popup")
         _accept_cookie_popup(page)
@@ -155,7 +164,7 @@ def main():
             logger.debug("Capturing amount of songs from user...")
 
             # capture amount of songs in the playlist
-            sys.stdout.write("Note: not recommended to download playlists with >100 songs")
+            sys.stdout.write("Note: not recommended to download playlists with >100 songs\n")
             sys.stdout.write("How many songs does your playlist have?\n>> ")
             sys.stdout.flush()
 
