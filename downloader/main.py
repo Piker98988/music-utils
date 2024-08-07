@@ -1,6 +1,5 @@
 """
 FIXME: de-nest all of the code that's not exported to an outside function...
-TODO: better get this running
 """
 import sys
 import time
@@ -40,6 +39,7 @@ def _accept_cookie_popup(page):
 def _handle_playlist_download(page, zip_number):
     """
     TODO: implement a dynamic song amount catcher instead of asking user for it.
+    TODO: dynamic timeout
 
     When called will expect the page to be already set up with the second download button
     for **playlist** downloading. shall not be called from outside main.py unless a page already set up
@@ -49,26 +49,45 @@ def _handle_playlist_download(page, zip_number):
     :param zip_number: zip files to download in case that playlist has >100 songs
     :return:
     """
-
+    # log and set a number of times to download parts
     logger.debug("Playlist download handler called")
     iterations = 1
-    while iterations <= zip_number + 1:
-        logger.debug(f"Downloading zip {iterations}")
-        # TODO
-        iterations += 1
 
-        download_button = page.get_by_role("button", name="Download")
-        with page.expect_download() as download_info:
-            download_button.click()
+    # start a loop which runs as many times as parts are needed to be downloaded from the playlist
+    while iterations <= zip_number:
+        logger.debug(f"Downloading zip {iterations}")
+
+        # click the load more button as many times as needed to get to part x
+        next_song = iterations - 1
+        if next_song > 0:
+            while iterations >= 1:
+                page = page.get_by_role("button", name="Load More")
+
+        # search and click for the firs button
+        logger.debug("searching for Download ZIP button")
+        page.get_by_role("button", name="Download ZIP").click()
+        logger.debug("Download ZIP button found and clicked")
+        logger.debug("searching for confirm download button")
+
+        # confirmation button
+        confirm_button = page.get_by_role("button", name="yes")
+        logger.debug("confirm download button found")
+
+        # the download takes a while...
+        with page.expect_download(timeout=100000000) as download_info:
+            logger.debug(f"entering with loop for download of zip {iterations}")
+            confirm_button.click()
             logger.debug("Download playlist button clicked")
 
-        song = download_info.value
-        logger.debug("Waiting for the song to be downloaded...")
+        # save file
+        playlist = download_info.value
+        logger.debug(f"Waiting for the playlist zip number {iterations} to be downloaded...")
         logger.debug("Checking if download has been complete...")
-        song.save_as("./.cache/" + f"{iterations}" + song.suggested_filename)
-        logger.info("Download complete")
+        playlist.save_as("./.cache/downloads/" + f"part_{iterations}_" + playlist.suggested_filename)
 
-    raise NotImplementedError
+        # outta loop
+        logger.info(f"Download of zip {iterations} complete")
+        iterations += 1
 
 
 def _handle_song_download(page):
@@ -104,7 +123,7 @@ def _handle_song_download(page):
     song = download_info.value
     logger.debug("Waiting for the song to be downloaded...")
     logger.debug("Checking if download has been complete...")
-    song.save_as("./.cache/" + song.suggested_filename)
+    song.save_as("./.cache/downloads/" + song.suggested_filename)
     logger.info("Download complete")
 
 
