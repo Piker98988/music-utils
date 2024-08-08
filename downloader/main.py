@@ -9,6 +9,34 @@ from loguru import logger
 from playwright.sync_api import sync_playwright
 
 
+def input_url(page, user_url):
+    """
+    To understand the following code you need to know that spotifydown.com has an anti-bot that records your
+    tpm and based on it lets you dowload or not. The workaround is basically selecting the textbox and instead
+    of using type() method, which does it letter by letter, use the insert_text() one which pastes it in an instant
+    """
+
+    # find textbox
+    input_textbox = page.get_by_placeholder("https://open.spotify.com/..../....")
+    logger.debug("Input textbox found")
+
+    # select textbox
+    input_textbox.type("")
+
+    # paste url
+    page.keyboard.insert_text(user_url)
+    logger.debug("The user_url has been input into the input_textbox")
+    logger.debug(f"is_playlist: {is_playlist(user_url)}")
+    logger.debug("Searching for first download button (process url button)")
+
+    # press enter to input url
+    page.keyboard.press("Enter")
+
+
+async def loading(what):
+    ...
+
+
 def startLogger():
     # set the logging file and test
     logger.add("./.cache/logs/downloader_{time}.log")
@@ -21,10 +49,10 @@ def startLogger():
 
 def is_playlist(url: str):
     """
-    very explicit name. if the user inputs a url that leads to a track it will return False,
-    because the url containing "track" will be a song and the url containing "playlist" will be a playlist.
-    :param url: url to check
-    """
+        very explicit name. if the user inputs a url that leads to a track it will return False,
+        because the url containing "track" will be a song and the url containing "playlist" will be a playlist.
+        :param url: url to check
+        """
     return "track" not in url  # will return true for playlist
 
 
@@ -36,7 +64,7 @@ def _accept_cookie_popup(page):
     logger.info("Cookie pop up accepted")
 
 
-def _handle_playlist_download(page, zip_number):
+def _handle_playlist_download(page, zip_number, url):
     """
     TODO: implement a dynamic song amount catcher instead of asking user for it.
     TODO: dynamic timeout
@@ -58,24 +86,34 @@ def _handle_playlist_download(page, zip_number):
         logger.debug(f"Downloading zip {iterations}")
 
         # click the load more button as many times as needed to get to part x
-        next_song = iterations - 1
+        next_song = 1
         if next_song > 0:
-            while iterations >= 1:
-                page = page.get_by_role("button", name="Load More")
+            page.reload()
+            input_url(page, user_url=url)
+            load_more = page.get_by_role("button", name="Load More")
+            load_more.click()
+            next_song -= 1
 
-        # search and click for the firs button
+        # search and click for the first button
+        time.sleep(0.5)
         logger.debug("searching for Download ZIP button")
-        page.get_by_role("button", name="Download ZIP").click()
-        logger.debug("Download ZIP button found and clicked")
+        download_zip = page.get_by_role("button", name="Download ZIP")
+        time.sleep(0.5)
+        logger.debug("Download ZIP button found")
+        download_zip.click()
+        download_zip.click()
+        logger.debug("Download ZIP button clicked 2 times")
         logger.debug("searching for confirm download button")
 
         # confirmation button
+        time.sleep(0.5)
         confirm_button = page.get_by_role("button", name="yes")
         logger.debug("confirm download button found")
 
         # the download takes a while...
         with page.expect_download(timeout=100000000) as download_info:
             logger.debug(f"entering with loop for download of zip {iterations}")
+            time.sleep(0.5)
             confirm_button.click()
             logger.debug("Download playlist button clicked")
 
@@ -146,7 +184,6 @@ def download():
     user_url = sys.stdin.readline().strip()  # strip input from line breaks and trailing spaces
     logger.debug(f"Url captured: {user_url}")
 
-    # start a browser instance
     with sync_playwright() as p:
         logger.info("Starting connection...")
 
@@ -160,26 +197,8 @@ def download():
         logger.debug("Accessing spotifydown site")
         page.goto("https://spotifydown.com")
 
-        # search for the textbox
-        input_textbox = page.get_by_placeholder("https://open.spotify.com/..../....")
-        logger.debug("Input textbox found")
-
-        """
-        To understand the following code you need to know that spotifydown.com has an anti-bot that records your
-        tpm and based on it lets you dowload or not. The workaround is basically selecting the textbox and instead
-        of using type() method, which does it letter by letter, use the insert_text() one which pastes it in an instant
-        """
-
-        # select textbox
-        input_textbox.type("")
-        # paste the url
-        page.keyboard.insert_text(user_url)
-        logger.debug("The user_url has been input into the input_textbox")
-        logger.debug(f"is_playlist: {is_playlist(user_url)}")
-        logger.debug("Searching for first download button (process url button)")
-
-        # press enter to input url
-        page.keyboard.press("Enter")
+        # extrapolate the input_url func
+        input_url(page, user_url)
 
         # accept cookies
         logger.debug(f"Calling accept cookie popup")
@@ -211,7 +230,7 @@ def download():
 
             # call the playlist download handler
             logger.debug("calling playlist downloads handler")
-            _handle_playlist_download(page, amount_of_zips)
+            _handle_playlist_download(page, amount_of_zips, user_url)
         else:
             # call the song download handler
             logger.debug("calling song downloads handler")
