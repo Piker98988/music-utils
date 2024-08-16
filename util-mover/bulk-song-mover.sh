@@ -12,17 +12,17 @@ if [ -z "$SONGS_DIR" ]; then
     
     # check if user wants to add to the ~/.bashrc file
     while true; do
-        read -p "Add environment variables to ~/.bashrc? (y/n)" yn
+        read -p "Add environment variables to ~/.bashrc? (y/n) " yn
         case $yn in
             [Yy]*)
-                echo "Added SONGS_DIR variable to ~/.bashrc"
                 echo "export SONGS_DIR=$songs_path" >> "$HOME/.bashrc"
+                echo "Added SONGS_DIR variable to ~/.bashrc"
                 break;;
             [Nn]*) 
                 echo "Variable not added. Note that for following executions this will not be set."
                 break;;
                 *) 
-                echo "(y/n)";;
+                echo "(y/n) ";;
         esac
     done
     # confirm to the user the path set
