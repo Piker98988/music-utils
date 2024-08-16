@@ -10,10 +10,4 @@ setup(
         "loguru",
         "playwright"
     ],
-    entry_points={
-        'console_scripts': [
-            "util-downloader = pikers-spotifydown-scraper.__init__:run"
-        ]
-    }
-
 )
